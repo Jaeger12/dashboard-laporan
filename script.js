@@ -1,4 +1,51 @@
 // ═══════════════════════════════════════════════
+// THEME TOGGLE SYSTEM
+// ═══════════════════════════════════════════════
+function initTheme(){
+  const savedTheme = localStorage.getItem('dashboardTheme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+function updateThemeIcon(theme){
+  const toggle = document.getElementById('themeToggle');
+  if(toggle) toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+  
+  // Add fade transition for smoother switching
+  document.body.style.opacity = '0.95';
+  
+  setTimeout(() => {
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('dashboardTheme', newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Update chart defaults for new theme
+    const newChartDefaults = getChartDefaults();
+    Object.assign(chartDefaults, newChartDefaults);
+    
+    // Re-render current page with new theme
+    const activePage = document.querySelector('.page.active').id;
+    if(activePage==='p1') render_p1();
+    if(activePage==='p2') render_p2();
+    if(activePage==='p3') render_p3();
+    if(activePage==='p4') render_p4();
+    
+    document.body.style.opacity = '1';
+  }, 150);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  initTheme();
+  const themeToggle = document.getElementById('themeToggle');
+  if(themeToggle) themeToggle.addEventListener('click', toggleTheme);
+});
+
+// ═══════════════════════════════════════════════
 // DATA INITIALIZATION & REGIONS MAPPING
 // ═══════════════════════════════════════════════
 const MGR_MAP = {West:'Anna Andreadi', East:'Chuck Magee', Central:'Kelly Williams', South:'Cassandra Brandow'};
@@ -31,13 +78,20 @@ const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov
 const COLORS = { blue:'#4d9fff', green:'#00d68f', amber:'#ffb830', red:'#ff4d6d', teal:'#00c2c7', purple:'#9b7fff' };
 const CAT_COLOR = { 'Technology':'#00c2c7', 'Office Supplies':'#9b7fff', 'Furniture':'#ffb830' };
 
-const chartDefaults = {
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7d9e' } },
-    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7d9e' } }
-  }
-};
+function getChartDefaults(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || !document.documentElement.getAttribute('data-theme');
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const tickColor = isDark ? '#6b7d9e' : '#6b7280';
+  return {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+      y: { grid: { color: gridColor }, ticks: { color: tickColor } }
+    }
+  };
+}
+
+const chartDefaults = getChartDefaults();
 
 // ═══════════════════════════════════════════════
 // CHART REGISTRY
