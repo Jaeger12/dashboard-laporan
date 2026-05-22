@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Superstore Sales & Profit Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>SUPERSTORE<br/>ANALYTICS</h1>
+    <p>Multi-Quarter Performance</p>
+  </div>
+  
+  <div class="nav-section">
+    <div class="nav-label">Navigasi</div>
+    <div class="nav-item active" onclick="showPage('p1')"><span class="icon">📊</span> Overview Historis</div>
+    <div class="nav-item" onclick="showPage('p2')"><span class="icon">🎯</span> Evaluasi Bulanan</div>
+    <div class="nav-item" onclick="showPage('p3')"><span class="icon">🔬</span> Audit Profitabilitas</div>
+    <div class="nav-item" onclick="showPage('p4')"><span class="icon">🗺️</span> Kinerja Regional</div>
+  </div>
+
+  <div class="nav-section filter-panel-container">
+    <div class="nav-label">Filter Panel</div>
+    
+    <label class="f-lbl">Tahun</label>
+    <div class="filter-tabs" id="group-year">
+      <div class="tab-item active" data-value="all">All</div>
+      <div class="tab-item" data-value="2023">2023</div>
+      <div class="tab-item" data-value="2024">2024</div>
+      <div class="tab-item" data-value="2025">2025</div>
+      <div class="tab-item" data-value="2026">2026</div>
+    </div>
+
+    <label class="f-lbl">Kuartal</label>
+    <div class="filter-pills" id="group-quarter">
+      <button class="pill-item active" data-value="all">Semua Q</button>
+      <button class="pill-item" data-value="1">Q1</button>
+      <button class="pill-item" data-value="2">Q2</button>
+      <button class="pill-item" data-value="3">Q3</button>
+      <button class="pill-item" data-value="4">Q4</button>
+    </div>
+
+    <label class="f-lbl">Wilayah Teritorial</label>
+    <div class="filter-radio-cards" id="group-region">
+      <label class="rc-item active"><input type="radio" name="rc-reg" value="all" checked hidden/><span>Semua</span></label>
+      <label class="rc-item"><input type="radio" name="rc-reg" value="West" hidden/><span>West</span></label>
+      <label class="rc-item"><input type="radio" name="rc-reg" value="East" hidden/><span>East</span></label>
+      <label class="rc-item"><input type="radio" name="rc-reg" value="Central" hidden/><span>Central</span></label>
+      <label class="rc-item"><input type="radio" name="rc-reg" value="South" hidden/><span>South</span></label>
+    </div>
+
+    <label class="f-lbl">Segmen Pelanggan</label>
+    <select id="f-segment" onchange="onFilterChange()">
+      <option value="all">Semua Segmen</option>
+      <option value="Consumer">Consumer</option>
+      <option value="Corporate">Corporate</option>
+      <option value="Home Office">Home Office</option>
+    </select>
+
+    <label class="f-lbl">Kategori Produk</label>
+    <select id="f-category" onchange="onFilterChange()">
+      <option value="all">Semua Kategori</option>
+      <option value="Technology">Technology</option>
+      <option value="Office Supplies">Office Supplies</option>
+      <option value="Furniture">Furniture</option>
+    </select>
+  </div>
+</aside>
+
+<main class="main">
+
+  <div id="p1" class="page active">
+    <div class="insight-bar" id="p1-insight"></div>
+    <div class="kpi-grid" id="p1-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Tren Kinerja Kuartal</div><canvas id="ch-quarterly" height="230"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Kontribusi Penjualan Tahunan</div><canvas id="ch-yearly" height="230"></canvas></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Volume Penjualan Segmen Pasar</div><canvas id="ch-segment" height="230"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Pergerakan Margin Bersih %</div><canvas id="ch-margin" height="230"></canvas></div>
+    </div>
+  </div>
+
+  <div id="p2" class="page">
+    <div class="insight-bar" id="p2-insight"></div>
+    <div class="kpi-grid" id="p2-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Fluktuasi Target Bulanan vs Batas Baseline</div><canvas id="ch-monthly-bar" height="220"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Komparasi Profitabilitas Bulanan</div><canvas id="ch-monthly-profit" height="220"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:20px"><div class="cc-title">Matriks Intensitas Penjualan (Heatmap)</div><div id="heatmap-container" style="padding:10px 0"></div></div>
+    <div class="chart-card"><div class="cc-title">Tabel Rincian Kinerja Bulanan</div><table class="data-table" id="tbl-monthly"></table></div>
+  </div>
+
+  <div id="p3" class="page">
+    <div class="insight-bar" id="p3-insight"></div>
+    <div class="kpi-grid" id="p3-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Sales vs Profit per Kategori Utama</div><canvas id="ch-cat-profit" height="220"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Klaster Distribusi Produk (Sales, Profit, Volume)</div><canvas id="ch-subcat-bubble" height="220"></canvas></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Top 10 Lini Produk Penyebab Kerugian Kas</div><canvas id="ch-loss-subcat" height="240"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Analisis Sensitivitas Dampak Diskon ke Profit</div><canvas id="ch-discount-impact" height="240"></canvas></div>
+    </div>
+    <div class="chart-card"><div class="cc-title">Tabel Audit Portofolio Sub-Kategori</div><table class="data-table" id="tbl-subcat"></table></div>
+  </div>
+
+  <div id="p4" class="page">
+    <div class="insight-bar" id="p4-insight"></div>
+    <div class="kpi-grid" id="p4-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><div class="cc-title">Profitabilitas Wilayah Teritorial</div><canvas id="ch-region-profit" height="230"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Performa Sales per Manajer Regional</div><canvas id="ch-manager-sales" height="230"></canvas></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><div class="cc-title">Distribusi Ship Mode</div><canvas id="ch-shipmode" height="250"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Segment Mix Wilayah</div><canvas id="ch-region-seg" height="250"></canvas></div>
+      <div class="chart-card"><div class="cc-title">Margin Regional %</div><canvas id="ch-region-margin" height="250"></canvas></div>
+    </div>
+    <div class="narr-card" id="narr-strategic"></div>
+  </div>
+
+</main>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
